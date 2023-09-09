@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Heat Map</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-4bw+/aepP/YC94hEpVNVgiZdgIC5+VKNBQNGCHeKRQN+PtmoHDEXuppvnDJzQIu9" crossorigin="anonymous"> <!--bootstrap css-->
+    <link href="styles.css" rel="stylesheet"/>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fira+Sans:ital,wght@1,300&family=Prompt:wght@200&family=Work+Sans:ital,wght@0,100;1,300&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js" integrity="sha384-HwwvtgBNo3bZJJLYd8oVXjrBZt8cqVSpeBNS5n7C8IVInixGAoxmnlMuBnhbgrkm" crossorigin="anonymous"></script> <!--bootstrap js-->
+
+    <script type="module"> 
+        import * as d3 from 'https://cdn.jsdelivr.net/npm/d3@7/+esm'
+
+        // const dataPromise = d3.json('/json/temp-data.json')
+        const dataPromise = d3.json(`https://raw.githubusercontent.com/freeCodeCamp/ProjectReferenceData/master/global-temperature.json`)
+
+        const margin = {
+            top: 20,
+            right: 20,
+            bottom: 20,
+            left: 120
+        }
+
+        const width = 2000;
+        const height = 1000;
+
+        const innerWidth = width / 2 ;
+        const innerHeight = (height / 2) - margin.top - margin.bottom 
+        
+        
+   
+
+        function drawHeatMap(dataset, baseTemp) {
+
+        const yearParse = d3.timeParse('%Y')
+        const monthParse = d3.timeParse('%m')
+        const dateParse = d3.timeParse('%Y-%m')
+        
+    
+        
+        
+  
+        
+        //parsing date for use
+        const parsedDate = dataset.map((d) => dateParse(`${d.year}-${d.month}`))
+        // console.log(parsedDate)
+        const dateExtent = d3.extent(parsedDate)
+        // console.log(dateExtent)
+
+
+        // find unique months to an array then format to string equivalent
+        const uniqueMonths = [...new Set(dataset.map((d) => d.month))]
+        const formatUniqueMonths = uniqueMonths.map((d) => d3.timeFormat('%B')(monthParse(d)))
+        
+        // console.log(formatUniqueMonths)
+
+        const legendData = dataset.map((d) => baseTemp + d.variance);
+        // console.log(legendData)
+
+        const sortedArray = legendData.sort((a, b) => a - b)
+        // console.log(sortedArray)  
+
+        const lMin = d3.min(sortedArray)
+        const lMax = d3.max(sortedArray)
+        const lMedian = d3.median(sortedArray)
+        const lrand = 6;
+
+        const legendTickValues = [lMin, lrand, lMedian, lMax];
+        
+
+        const hexC = ['#0000FF', '#66CCFF', '#00FFFF', '#008000', '#00FF00', '#ADFF2F']
+
+
+       
+
+       
+
+        // colour scale
+        const minVar = d3.min(dataset, (d) => d.variance)
+        // console.log(minVar)
+        const maxVar = d3.max(dataset, (d) => d.variance)
+        // console.log(maxVar)
+
+        const colourScale = d3.scaleLinear()
+        .domain([d3.min(dataset, (d) => baseTemp + d.variance), d3.median(dataset, (d) => baseTemp + d.variance), d3.max(dataset, (d) => baseTemp + d.variance)])
+        .range(["#3575B4", "#FFFFAA", "#D73027", 'red'])
+        
+        
+
+        const svg = d3.select('body')
+        .append('svg')
+        .attr('width', width )
+        .attr('height', height)
+        .append('g')
+        .attr('id', 'heatmap')
+        .attr('transform', `translate(${margin.left}, ${margin.top})`)
+
+        
+  
+
+
+        // draw and set x and y axis.
+        const xScale = d3.scaleBand() // setting year
+        .domain(d3.map(dataset, (d) => d.year))
+        .range([0, innerWidth])
+        .padding(0.0001)
+
+        const yScale = d3.scaleBand() // setting months
+        .domain(formatUniqueMonths)
+        .range([0, innerHeight])
+
+
+        const xAxis = d3.axisBottom(xScale).tickValues(xScale.domain().filter((d) => !(d % 10)))
+        
+        
+        const yAxis = d3.axisLeft(yScale)
+
+        svg.append('g')
+        .attr('id', 'x-axis')
+        .attr('transform', `translate(0, ${innerHeight})`)
+        .call(xAxis)
+
+        svg.append('g')
+        .attr('id', 'y-axis')
+        .call(yAxis)
+
+        // tooltip
+        const tooltip = d3.select('body')
+        .append('div')
+        .attr('id', 'tooltip')
+        .attr('class', 'tooltip')
+        
+
+        // plotting
+        svg.selectAll('rect')
+        .data(dataset)
+        .enter()
+        .append('rect')
+        .attr('x', (d) => xScale(d.year) )
+        .attr('y', (d) => yScale(d3.timeFormat('%B')(monthParse(d.month))))
+        .attr('width', xScale.bandwidth())
+        .attr('height', yScale.bandwidth())
+        .attr('fill', (d) => colourScale(d.variance + baseTemp))
+        .attr("data-month", (d) => d.month - 1)
+        .attr("data-year", (d) => d.year)
+        .attr("data-temp", (d) => d.variance + baseTemp)
+        .attr('class', 'cell')
+        .on('mouseover', function (event, d) {
+            
+            tooltip.transition()
+            .duration(200)
+            .style('opacity', 0.9)
+            tooltip.html(`${d.year} - ${(d.month)}<br>Average Temp: ${d3.format('.2f')(d.variance + baseTemp)}℃<br>Variance: ${d.variance}℃`)
+            .attr('data-year', d.year)
+            tooltip.style('top', (event.pageY+100)+'px')
+            .style('left',(event.pageX-15)+'px')
+        })
+        .on('mousemove', function() {
+            tooltip.style('top', (event.pageY+100)+'px')
+            .style('left',(event.pageX-15)+'px')
+        })
+        .on('mouseout', function(event, d) {
+            tooltip.transition()
+            .duration(300)
+                .style('opacity', 0)
+        })  
+     
+
+
+
+        svg.append('text')
+        .text('Monthly Global Land-Surface Temperature')
+        .attr('id', 'title')
+        .attr('transform', `translate(200, 540)`)
+        .attr('font-size', 30)
+        .attr('text-decoration', 'underline')
+        .attr('fill', 'white')
+
+        svg.append('text')
+        .text('Data from 1753 to 2015 with a base temperature of 8.66℃')
+        .attr('id', 'description')
+        .attr('transform', `translate(225, 600)`)
+        .attr('font-size', 20)
+        .attr('fill', 'white')
+        
+
+        svg.append('a')
+        .attr('href', 'https://raw.githubusercontent.com/freeCodeCamp/ProjectReferenceData/master/cyclist-data.json')
+        .attr('target', '_blank')
+        .append('text')
+        .attr('x', 790)
+        .attr('y', 500)
+        .attr('fill', 'white')
+        .text('Click here for the dataset used')
+
+        svg.append('text')
+        .text('Months')
+        .attr('id', 'y-axis-label')
+        .attr('transform', `rotate(270, 30, 125)`)
+        .attr('fill', 'white')
+        .attr('font-size', 15)
+
+        svg.append('text')
+        .text('Years')
+        .attr('id', 'x-axis-label')
+        .attr('transform', `translate(0, 500)`)
+        .attr('fill', 'white')
+        .attr('font-size', 15)
+
+
+
+
+
+     
+
+        const legendContainer = svg.append('g')
+        .attr('class', 'legend-container')
+        .attr('id', 'legend')
+        .attr('transform', 'translate(20, 20)')
+        
+        const gradient = svg.append('defs')
+        .append('linearGradient')
+        .attr('id', 'gradient')
+        .attr('x1', '0%')
+        .attr('x2', '0%')
+        .attr('y1', '25%')
+        .attr('y2', '50%')
+        .attr('x3', '0%')
+        .attr('y3', '75%')
+        .attr('x4', '0%')
+        .attr('y4', '100%')
+        
+        
+        
+        gradient.selectAll('stop')
+        .data(legendData)
+        .enter()
+        .append('stop')
+        .attr('offset', (d, i) => `${(i / (sortedArray.length - 1)) * 100}%`)
+        .attr('stop-color', (d) => colourScale(d))
+        
+        // uncomment this for real-legend
+        // legendContainer.append('rect')
+        // .attr('class', 'legend-item')
+        // .attr('x', 1000)
+        // .attr('y', 0)
+        // .attr('width', 20) 
+        // .attr('height', 200)
+        // .style('fill', 'url(#gradient)')
+        // --------------------------------------
+        // comment below to get rid of fake legend
+
+        const legendColors = ['#3575B4', '#FFFFAA', '#D73027', 'purple', 'green']
+
+        legendContainer.selectAll('rect')
+        .data(legendColors)
+        .enter()
+        .append('rect')
+        .attr('class', 'legend-item')
+        .attr('x', 1000)
+        .attr('y', (d, i) => i * 40)
+        .attr('width', 20)
+        .attr('height', 20) 
+        .style('fill', (d) => d)
+        
+        // comment above to get rid of fake legend
+        
+
+
+        
+        legendContainer.selectAll('text')
+        .data(legendTickValues)
+        .enter()
+        .append('text')
+        .attr('x', 1025) 
+        .attr('y', (d, i) => i * (210 / (legendTickValues.length - 1))) 
+        .text((d) => d.toFixed(1))
+        .attr('fill', 'white')
+        .attr('font-size', 12)
+        .attr('font-weight', 'bold')
+        
+
+
+        
+
+        
+    }
+        
+        
+
+       
+
+
+
+        dataPromise.then(function(data) {
+            const dataset = data.monthlyVariance;
+            const baseTemp = data.baseTemperature;
+            // console.log(dataset);
+            // console.log(baseTemp);
+            drawHeatMap(dataset, baseTemp);
+        })
+
+    </script>
+
+    <script src="https://cdn.freecodecamp.org/testable-projects-fcc/v1/bundle.js"></script>
+    
+
+
+        
+</body>
+</html>

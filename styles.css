@@ -1,0 +1,29 @@
+html, body {
+    font-family: 'Fira Sans';
+    background-color: black;
+    color: white;
+}
+
+.tooltip:hover {
+    fill: white;
+}
+
+#tooltip {
+    color:white;
+    position: absolute;
+    border-radius: 5px;
+    padding: 3px;
+    background-color:black;
+    border: 1px solid;
+    font-size: 1.4em;
+    opacity: 0;
+    z-index: 20;
+  
+
+}
+
+
+#heatmap {
+    display: block;
+}
+
