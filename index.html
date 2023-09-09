@@ -17,8 +17,8 @@
     <script type="module"> 
         import * as d3 from 'https://cdn.jsdelivr.net/npm/d3@7/+esm'
 
-        // const dataPromise = d3.json('/json/temp-data.json')
-        const dataPromise = d3.json(`https://raw.githubusercontent.com/freeCodeCamp/ProjectReferenceData/master/global-temperature.json`)
+        const dataPromise = d3.json('/json/temp-data.json')
+        // const dataPromise = d3.json(`https://raw.githubusercontent.com/freeCodeCamp/ProjectReferenceData/master/global-temperature.json`)
 
         const margin = {
             top: 20,
@@ -246,28 +246,28 @@
         .attr('stop-color', (d) => colourScale(d))
         
         // uncomment this for real-legend
-        // legendContainer.append('rect')
-        // .attr('class', 'legend-item')
-        // .attr('x', 1000)
-        // .attr('y', 0)
-        // .attr('width', 20) 
-        // .attr('height', 200)
-        // .style('fill', 'url(#gradient)')
+        legendContainer.append('rect')
+        .attr('class', 'legend-item')
+        .attr('x', 1000)
+        .attr('y', 0)
+        .attr('width', 20) 
+        .attr('height', 200)
+        .style('fill', 'url(#gradient)')
         // --------------------------------------
         // comment below to get rid of fake legend
 
-        const legendColors = ['#3575B4', '#FFFFAA', '#D73027', 'purple', 'green']
+        // const legendColors = ['#3575B4', '#FFFFAA', '#D73027', 'purple', 'green']
 
-        legendContainer.selectAll('rect')
-        .data(legendColors)
-        .enter()
-        .append('rect')
-        .attr('class', 'legend-item')
-        .attr('x', 1000)
-        .attr('y', (d, i) => i * 40)
-        .attr('width', 20)
-        .attr('height', 20) 
-        .style('fill', (d) => d)
+        // legendContainer.selectAll('rect')
+        // .data(legendColors)
+        // .enter()
+        // .append('rect')
+        // .attr('class', 'legend-item')
+        // .attr('x', 1000)
+        // .attr('y', (d, i) => i * 40)
+        // .attr('width', 20)
+        // .attr('height', 20) 
+        // .style('fill', (d) => d)
         
         // comment above to get rid of fake legend
         
