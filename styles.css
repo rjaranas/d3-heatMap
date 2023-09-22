@@ -1,11 +1,20 @@
 html, body {
     font-family: 'Fira Sans';
-    background-color: black;
-    color: white;
+    height: 100%;
+    width: 100%;
+    color: black;
 }
 
+#legend-container {
+    position:absolute;
+    z-index: 20;
+    top: 200px;
+    right: 200px;
+}
+
+
 .tooltip:hover {
-    fill: white;
+    fill: rgb(75, 60, 60);
 }
 
 #tooltip {
@@ -18,12 +27,21 @@ html, body {
     font-size: 1.4em;
     opacity: 0;
     z-index: 20;
+    text-align: center;
   
 
 }
 
-
-#heatmap {
-    display: block;
+#title-container {
+    text-align: center;
+    padding: 30px;
 }
 
+
+#container {
+    margin: 0 auto;
+}
+
+svg {
+    margin: 0 auto;
+}
